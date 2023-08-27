@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Redirect to...",
+  "version": "1.0.0",
+  "options_page": "index.html",
+  "permissions": [
+    "contextMenus", "tabs", "storage"
+  ],
+  "background": {
+    "service_worker": "src/sw.ts"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*/*",
+        "http://*/*"
+      ],
+      "js": [
+        "src/contentscript.ts"
+      ]
+    }
+  ]
+}
