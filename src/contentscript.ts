@@ -1,7 +1,6 @@
 import {UrlSelectionEvent} from "./SharedClasses";
-import Url = chrome.history.Url;
 
-console.log(`Doc is ${document}, window is ${window}, chrome is ${chrome}`)
+// console.log(`Doc is ${document}, window is ${window}, chrome is ${chrome}`)
 
 // var lastSelected: Element | null
 var wasBody: boolean = false
@@ -48,7 +47,7 @@ function scheduleSend(url: string, newTab: boolean) {
             url: url,
             newTab: newTab
         })
-        console.log(`Sent: ${url}`)
+        // console.log(`Sent: ${url}`)
         timerId = -1
     }, 250)
 }

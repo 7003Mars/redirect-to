@@ -1,4 +1,5 @@
 import {RedirectRule, RuleData} from "./Redirects";
+import {unwrap} from "solid-js/store";
 
 // Stolen from jsxt
 function stringf(str: string, ...args: any[]) {
@@ -7,8 +8,9 @@ function stringf(str: string, ...args: any[]) {
     });
 }
 
-async function saveRules(rules: RedirectRule[]) {
-    await chrome.storage.local.set({"rules": rules.map(r => r.save())})
+async function saveRules(rules: RuleData[]) {
+    // console.log(`saving ${JSON.stringify(rules)}`)
+    await chrome.storage.local.set({"rules": unwrap(rules)})
     chrome.runtime.sendMessage(<RuleUpdateEvent>{name: "update"})
 }
 
@@ -16,7 +18,7 @@ async function loadRules(): Promise<RedirectRule[]> {
     // console.log(`stored: ${await chrome.storage.local.get("rules")}`)
     const loaded: RuleData[] | undefined = (await chrome.storage.local.get("rules"))["rules"] as RuleData[]
     if (loaded == null) return [new RedirectRule()]
-    console.log(`loaded ${loaded}`)
+    console.log(`Loaded config: ${JSON.stringify(loaded)}`)
     return loaded.map(d => {
         const rule = new RedirectRule()
         rule.load(d)

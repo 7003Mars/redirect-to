@@ -48,13 +48,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         redirectUrl = "https://" + redirectUrl
     }
     redirectUrl = stringf(redirectUrl, redirect.capturedGroups)
-    console.log(`new url is ${redirectUrl}`)
-    // console.log("something fishy!")
+    console.log(`Redirecting to ${redirectUrl}`)
     if (newTab) {
-        // console.log("oii")
         chrome.tabs.create({
             windowId: tab!.windowId,
-            index: tab!.index,
+            index: tab!.index+1,
             url: redirectUrl
         })
     } else {
@@ -64,7 +62,3 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     }
 
 })
-
-export {
-    // RedirectRule
-}

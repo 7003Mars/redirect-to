@@ -36,10 +36,12 @@ class RedirectRule implements Serializable<RuleData>{
         for (let i = 0; i < this.redirectUrls.length; i++) {
             const replaced = stringf(this.redirectUrls[i], groups)
             if (this.shown) {
+                // console.log(`update ${this.id}-${i}`)
                 chrome.contextMenus.update(this.id + "-" + i, {
                     title: replaced,
                 })
             } else {
+                // console.log(`create ${this.id}-${i}`)
                 chrome.contextMenus.create({
                     id: this.id + "-" + i,
                     parentId: this.id.toString(),
@@ -52,6 +54,7 @@ class RedirectRule implements Serializable<RuleData>{
     }
 
     public clearMenu(): boolean {
+        console.log(`Clearing: ${this.shown}`)
         if (this.shown) {
             chrome.contextMenus.remove(this.id.toString())
             for (let i = 0; i < this.redirectUrls.length; i++) {
@@ -77,7 +80,6 @@ class RedirectRule implements Serializable<RuleData>{
             redirectUrls: this.redirectUrls
         }
     }
-
 }
 
 interface RuleData extends JsonObject {
@@ -86,7 +88,16 @@ interface RuleData extends JsonObject {
     redirectUrls: string[]
 }
 
+function emptyRuleData(): RuleData {
+    return <RuleData> {
+        name: "NAME ME",
+        regex: "",
+        redirectUrls: []
+    }
+}
+
 export {
-    RedirectRule
+    RedirectRule,
+    emptyRuleData
 };
 export type { RuleData };

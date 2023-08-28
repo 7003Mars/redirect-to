@@ -1,52 +1,53 @@
 import type {Component} from 'solid-js';
 import {createEffect, createMemo, createSignal, For, onMount, Show} from "solid-js";
-import {RedirectRule} from "./Redirects";
-import {loadRules, saveRules} from "./SharedClasses";
-// import RedirectRule from "./sw";
+import {emptyRuleData, RedirectRule, RuleData} from "./Redirects";
+import {saveRules} from "./SharedClasses";
+import {createStore} from "solid-js/store";
 
-const [rules, setRules] = createSignal<RedirectRule[]>([new RedirectRule()])
+const [rules, setRules] = createStore<RuleData[]>([emptyRuleData()])
 const [index, setIndex] = createSignal<number>(0)
 
-function selected(): RedirectRule {
-    console.log(`index is ${index()}`)
-    const res = rules()[index()]
-    if (!res) throw new Error(`Accessing index ${index()} of list of size ${rules().length}`)
-    console.log(`Selected name: ${res.name}`)
+function selected(): RuleData {
+    // console.log(`index is ${index()}`)
+    const res = rules[index()]
+    if (!res) throw new Error(`Accessing index ${index()} of list of size ${rules.length}`)
+    // console.log(`Selected name: ${res.name}`)
     return res
 }
-
 
 const TabSelector: Component = () => {
     return (
         <div class="row">
             <div class="tabs scroll max">
-                <For each={rules()}>{(rule, i) =>
+                <For each={rules}>{(rule, i) =>
                     <a classList={{active: i() == index()}} onclick={() => setIndex(i())}>{rule.name}</a>}
                 </For>
             </div>
-            <button class="small round" onclick={() => setRules([...rules(), new RedirectRule()])}>Add new</button>
+            <button class="small round" onclick={() => {
+                setRules([...rules, emptyRuleData()])}
+                }>Add new</button>
         </div>
 
     )
 }
 
-const RedirectConfig: Component<{ rule: RedirectRule }> = (p) => {
+const RedirectConfig: Component<{ rule: RuleData }> = (p) => {
     let inputElem: HTMLInputElement
     let textElem: HTMLTextAreaElement
 
     const [name, setName] = createSignal<string>("")
     const [regexp, setRegexp] = createSignal<string>("")
     createEffect(() => {
-        const rule: RedirectRule = p.rule
+        const rule: RuleData = p.rule
         setName(rule.name)
-        setRegexp(rule.regex.source)
+        setRegexp(rule.regex)
         setRedirects_(rule.redirectUrls.join("\n"))
 
     })
-    const regex = createMemo<RegExp | string>(() => {
-        if (regexp() == "") return "Input regex here"
+    const regexErrors = createMemo<string | null>(() => {
         try {
-            return new RegExp(regexp())
+            new RegExp(regexp())
+            return null
         } catch (e) {
             if (e instanceof SyntaxError) {
                 return e.message
@@ -55,10 +56,6 @@ const RedirectConfig: Component<{ rule: RedirectRule }> = (p) => {
             return `Something went horribly wrong! Exception: ${(e as Error).message}`
         }
     })
-
-    function regexValid(): boolean {
-        return !(typeof regex() === "string")
-    }
 
     const [redirects_, setRedirects_] = createSignal("")
     const redirects = createMemo<string[]>(() => {
@@ -75,8 +72,7 @@ const RedirectConfig: Component<{ rule: RedirectRule }> = (p) => {
 
     function saveRule() {
         // const rule: RedirectRule = currentRule()
-        const rule: RedirectRule = p.rule
-        if (!regexValid()) {
+        if (regexErrors() || regexp().trim().length == 0) {
             inputElem.focus()
             return;
         }
@@ -84,10 +80,12 @@ const RedirectConfig: Component<{ rule: RedirectRule }> = (p) => {
             textElem.focus()
             return;
         }
-        rule.name = name()
-        rule.regex = regex() as RegExp
-        rule.redirectUrls = redirects()
-        saveRules(rules())
+        setRules(index(), {
+            name: name(),
+            regex: regexp(),
+            redirectUrls: redirects()
+        } as RuleData)
+        saveRules(rules)
     }
 
 
@@ -99,7 +97,7 @@ const RedirectConfig: Component<{ rule: RedirectRule }> = (p) => {
         <div class="field label medium">
             <input type="text" ref={inputElem!} onInput={e => setRegexp(e.target.value)} value={regexp()}/>
             <label>Regex expression</label>
-            <Show when={!regexValid()}><span class="error">{regex() as string}</span></Show>
+            <Show when={regexErrors()}><span class="error">{regexErrors()}</span></Show>
         </div>
         <div class="field textarea label border large">
             <textarea ref={textElem!} onInput={e => setRedirects_(e.target.value)} value={redirects_()}></textarea>
@@ -107,10 +105,10 @@ const RedirectConfig: Component<{ rule: RedirectRule }> = (p) => {
             <Show when={yieldWarnings()}><span class="error">{yieldWarnings()}</span></Show>
         </div>
         <div class="right-align">
-            <button class="border" disabled={rules().length == 1} onclick={() => {
-                const rule: RedirectRule = p.rule
-                setIndex(Math.max(rules().indexOf(rule)-1, 0))
-                setRules(rules().filter(r => r.id != rule.id))
+            <button class="border" disabled={rules.length == 1} onclick={() => {
+                const rule: RuleData = p.rule
+                setIndex(Math.max(rules.indexOf(rule)-1, 0))
+                setRules(rules.filter(r => r != rule))
             }}>Delete</button>
             <button class="border" onclick={saveRule}>Save</button>
         </div>
@@ -118,20 +116,8 @@ const RedirectConfig: Component<{ rule: RedirectRule }> = (p) => {
 }
 
 const App: Component = () => {
-    onMount(async () => setRules(await loadRules()))
 
-    const mockcrap = []
-    // setInterval(() => {
-    //     setRules([...rules, new RedirectRule("verylong-"+rules.length, new RegExp(""))])
-    // }, 1000)
-    for (let i = 0; i < 1; i++) {
-        const rule = new RedirectRule()
-        rule.name = "verylongname-" + i
-        mockcrap.push(rule)
-    }
-    // setRules(mockcrap)
-    // setRules((rule) => rule.name == "", produce())
-
+    onMount(async () => setRules((await chrome.storage.local.get("rules"))["rules"] as RuleData[]))
 
     return (
         <>
