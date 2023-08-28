@@ -1,9 +1,8 @@
-
-// Stolen from jsxt
 import {RedirectRule, RuleData} from "./Redirects";
 
+// Stolen from jsxt
 function stringf(str: string, ...args: any[]) {
-    return str.replace(/\{(\d+)\}/g, function($0, $1) {
+    return str.replace(/\{(\d+)}/g, function($0, $1) {
         return args[$1] !== void 0 ? args[$1] : $0;
     });
 }
@@ -24,9 +23,6 @@ async function loadRules(): Promise<RedirectRule[]> {
         return rule
     })
 }
-
-var a = 0
-
 interface BaseEvent extends JsonObject {
     name: string
 }

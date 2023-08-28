@@ -1,5 +1,6 @@
-import {BaseEvent, loadRules, RuleUpdateEvent, stringf, UrlSelectionEvent} from "./SharedClasses";
+import {loadRules, RuleUpdateEvent, stringf, UrlSelectionEvent} from "./SharedClasses";
 import {RedirectRule} from "./Redirects";
+import Tab = chrome.tabs.Tab;
 
 var newTab: boolean = false
 let rules: RedirectRule[] = []
@@ -22,6 +23,11 @@ chrome.runtime.onMessage.addListener(async (message: RuleUpdateEvent) => {
     rules = await loadRules()
 })
 
+chrome.tabs.onActivated.addListener(async (e) => {
+    const tab: Tab = await chrome.tabs.get(e.tabId)
+    rules.forEach(r => r.rebuildContextMenu(tab.url!, false))
+})
+
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     console.log(`Clicked id: ${info.menuItemId}`)
@@ -31,7 +37,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (index == -1) return;
     const id: number = parseInt(menuId.substring(0, menuId.indexOf("-")))
     const pageId: number = parseInt(menuId.substring(index+1, menuId.length))
-    const redirect: RedirectRule = rules[id]
+    const redirect: RedirectRule | undefined = rules.find(r => r.id == id)
+    if (redirect == null) {
+        console.error("Redirect is undefined!")
+        return;
+    }
     console.log(`redirect is ${redirect}, id is ${id}, pageig is ${pageId} menudi is ${menuId}`)
     let redirectUrl: string = redirect.redirectUrls[pageId]
     if (!redirectUrl.startsWith("https://") && !redirectUrl.startsWith("http://")) {
@@ -54,12 +64,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     }
 
 })
-
-// const red = new RedirectRule("Among", /https:\/\/(.*)/)
-// rules.push(red)
-// red.redirectUrls = ["http://google.com/search?q={0}", "{0}"]
-// red.rebuildContextMenu("https://hi.com/wow", false)
-
 
 export {
     // RedirectRule
