@@ -25,15 +25,6 @@ document.addEventListener("mouseover", (e) => {
         scheduleSend(window.location.href, false)
         wasBody = true
     }
-    // if (selected == null || selected == lastSelected) return
-    //
-    // if (selected instanceof HTMLAnchorElement) {
-    //     scheduleSend(selected.href, true)
-    //     lastSelected = selected
-    // } else if (lastSelected != null) {
-    //     lastSelected = null
-    //     scheduleSend(window.location.href,false)
-    // }
 })
 
 function scheduleSend(url: string, newTab: boolean) {

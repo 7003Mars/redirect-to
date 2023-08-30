@@ -1,33 +1,71 @@
-import {loadRules, RuleUpdateEvent, stringf, UrlSelectionEvent} from "./SharedClasses";
-import {RedirectRule} from "./Redirects";
+import {JsonObject, loadRules, RuleUpdateEvent, stringf, UrlSelectionEvent} from "./SharedClasses";
+import {RedirectRule, RuleData} from "./Redirects";
 import Tab = chrome.tabs.Tab;
 
 var newTab: boolean = false
 let rules: RedirectRule[] = []
 
+// Hacky patch for data persistence
+function keepAlive() {
+    setInterval(chrome.runtime.getPlatformInfo, 20e3)
+}
+chrome.runtime.onStartup.addListener(keepAlive)
+keepAlive()
+
+
+interface CacheData extends JsonObject {
+    groups: string[]
+}
+
+// TODO: Check if this even works
+console.log("Service worker started!")
 loadRules().then(loaded => {
-    rules.forEach(r => r.rebuildContextMenu("", false))
+    chrome.contextMenus.removeAll()
+    // loaded.forEach(async (r) => {
+    //     const cache: CacheData | null = (await chrome.storage.session.get(r.name))[r.name] as CacheData
+    //     if (cache == null) return
+    //     console.log(`Cache load: ${r.name} (${JSON.stringify(cache)})`)
+    //     r.capturedGroups = cache.groups
+    // })
     rules = loaded
+    //
+    // chrome.storage.session.get((p) => {
+    //     console.log("Session storage:")
+    //     console.dir(p)
+    //     console.log(`All rules: ${rules}`)
+    // })
 })
 
 chrome.runtime.onMessage.addListener((message: UrlSelectionEvent) => {
     // Check name to ensure the message is actually a UrlSelectionEvent
     if (message.name != "select") return;
     newTab = message.newTab
-    rules.forEach((r) => r.rebuildContextMenu(message.url, false))
+    rebuildMenus(message.url)
 })
 
 chrome.runtime.onMessage.addListener(async (message: RuleUpdateEvent) => {
     if (message.name != "update") return
-    rules.forEach(r => r.rebuildContextMenu("", false))
+    rebuildMenus("")
     rules = await loadRules()
 })
 
 chrome.tabs.onActivated.addListener(async (e) => {
     const tab: Tab = await chrome.tabs.get(e.tabId)
-    rules.forEach(r => r.rebuildContextMenu(tab.url!, false))
+    rebuildMenus(tab.url!)
 })
 
+function rebuildMenus(url: string) {
+    chrome.contextMenus.removeAll(() => {
+        // const obj: JsonObject = {}
+        rules.forEach(r => {
+            r.buildContextMenu(url, false)
+            // obj[r.id.toString()] = <CacheData>{
+            //     groups: r.capturedGroups
+            // }
+        })
+        // chrome.storage.session.set(obj)
+    })
+}
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     console.log(`Clicked id: ${info.menuItemId}`)
