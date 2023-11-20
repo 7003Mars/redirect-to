@@ -1,0 +1,5 @@
+{
+  "watch": ["src", "manifest-ff.json"],
+  "ext": "*",
+  "exec": "npm run dev"
+}

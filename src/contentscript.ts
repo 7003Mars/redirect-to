@@ -1,6 +1,7 @@
 import {UrlSelectionEvent} from "./SharedClasses";
+import {runtime} from "webextension-polyfill";
 
-// console.log(`Doc is ${document}, window is ${window}, chrome is ${chrome}`)
+console.log(`Doc is ${document}, window is ${window}`)
 
 // var lastSelected: Element | null
 var wasBody: boolean = false
@@ -32,8 +33,8 @@ function scheduleSend(url: string, newTab: boolean) {
         clearTimeout(timerId)
         // console.log("cleared prev")
     }
-    timerId = setTimeout(() => {
-        chrome.runtime.sendMessage(<UrlSelectionEvent>{
+    timerId = window.setTimeout(() => {
+        runtime.sendMessage(<UrlSelectionEvent>{
             name: "select",
             url: url,
             newTab: newTab

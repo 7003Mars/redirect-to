@@ -1,5 +1,6 @@
-import {RedirectRule, RuleData} from "./Redirects";
+import {RedirectRule} from "./backend/Redirects";
 import {unwrap} from "solid-js/store";
+import {runtime, storage} from "webextension-polyfill";
 
 // Stolen from jsxt
 function stringf(str: string, ...args: any[]) {
@@ -8,15 +9,29 @@ function stringf(str: string, ...args: any[]) {
     });
 }
 
+interface RuleData extends JsonObject {
+    name: string
+    regex: string
+    redirectUrls: string[]
+}
+
+function emptyRuleData(): RuleData {
+    return <RuleData>{
+        name: "NAME ME",
+        regex: "",
+        redirectUrls: []
+    }
+}
+
 async function saveRules(rules: RuleData[]) {
     // console.log(`saving ${JSON.stringify(rules)}`)
-    await chrome.storage.local.set({"rules": unwrap(rules)})
-    chrome.runtime.sendMessage(<RuleUpdateEvent>{name: "update"})
+    await storage.local.set({"rules": unwrap(rules)})
+    runtime.sendMessage(<RuleUpdateEvent>{name: "update"})
 }
 
 async function loadRules(): Promise<RedirectRule[]> {
     // console.log(`stored: ${await chrome.storage.local.get("rules")}`)
-    const loaded: RuleData[] | undefined = (await chrome.storage.local.get("rules"))["rules"] as RuleData[]
+    const loaded: RuleData[] | undefined = (await storage.local.get("rules"))["rules"] as RuleData[]
     if (loaded == null) return [new RedirectRule()]
     console.log(`Loaded config: ${JSON.stringify(loaded)}`)
     return loaded.map(d => {
@@ -33,6 +48,7 @@ interface UrlSelectionEvent extends BaseEvent {
     name: "select"
     url: string
     newTab: boolean
+    opened: boolean
 }
 
 interface RuleUpdateEvent extends BaseEvent {
@@ -51,14 +67,23 @@ interface Serializable<T extends JsonObject> {
     load(object: T): boolean
 }
 
+function copy<T extends JsonObject>(object: T, properties: Partial<T>): T {
+    const copy: T = Object.assign({}, object)
+    return Object.assign(copy, properties)
+
+}
+
 export {
+    copy,
     stringf,
-    saveRules, loadRules
+    saveRules, loadRules,
+    emptyRuleData
 };
 export type {
     UrlSelectionEvent,
     RuleUpdateEvent,
     JsonObject,
     Serializable,
-    BaseEvent
+    BaseEvent,
+    RuleData
 };

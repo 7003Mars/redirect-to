@@ -1,13 +1,19 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "Redirect to...",
   "version": "1.0.0",
-  "options_page": "index.html",
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "permissions": [
     "contextMenus", "tabs", "storage"
   ],
   "background": {
-    "service_worker": "src/sw.ts"
+    "scripts": [
+      "backend/sw.js"
+    ],
+    "persistent": true
   },
   "content_scripts": [
     {
@@ -16,7 +22,7 @@
         "http://*/*"
       ],
       "js": [
-        "src/contentscript.ts"
+        "contentscript.js"
       ]
     }
   ]
