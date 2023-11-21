@@ -42,7 +42,7 @@ const RuleSelector: Component<Options> = (opt) => {
             <div class="row">
                 <nav class="scroll max">
                     <For each={ opt.rules }>{(rule, i) =>
-                        <a class="chip" draggable={true} classList={ {fill: i() == opt.index} }
+                        <a class="chip" draggable={true} classList={ {fill: !(i() == opt.index)} }
                            onclick={ () => opt.onRuleSelect(i()) }
                            onDragStart={ e => chipDragStart(e, i()) }
                            onDragEnd={ e => chipDragEnd() }
