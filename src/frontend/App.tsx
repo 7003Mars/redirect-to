@@ -29,6 +29,7 @@ const App: Component = () => {
     })
 
     function deleteRule(index: number) {
+        if (viewIndex() >= index && viewIndex() != 0) setViewIndex(viewIndex()-1)
         setRules(rules().filter((v, i) => i  != index))
     }
 

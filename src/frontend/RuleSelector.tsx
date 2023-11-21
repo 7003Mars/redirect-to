@@ -102,13 +102,23 @@ const NamePrompt: Component<NamePromptOpt> = (opt) => {
         }
     })
 
+    function submit() {
+        opt.onSubmit(name().trim())
+        setName("")
+    }
+
     return (
         <dialog ref={self!}>
             <div class="field border" classList={ {invalid: nameEmpty()} }>
                 <input type="text" ref={input!}
                        placeholder="Name" value={name()}
                        onInput={e => setName(e.target.value)}
-                       onkeydown={e => { if (!nameEmpty() && e.key == "Enter") opt.onSubmit(name().trim()) }}
+                       onkeydown={e => {
+                           if (!nameEmpty() && e.key == "Enter") {
+                               e.preventDefault()
+                               submit()
+                           }
+                       }}
                 />
             </div>
             <div class="row right-align">
@@ -116,7 +126,7 @@ const NamePrompt: Component<NamePromptOpt> = (opt) => {
                     <i>Cancel</i>
                     <span>Cancel</span>
                 </button>
-                <button class="small" disabled={nameEmpty()} onclick={ () => opt.onSubmit(name().trim()) }>
+                <button class="small" disabled={nameEmpty()} onclick={ submit }>
                     <i>Add</i>
                     <span>Add</span>
                 </button>
