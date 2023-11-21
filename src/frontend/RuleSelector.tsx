@@ -1,4 +1,4 @@
-import {Component, createEffect, createMemo, createSignal, For} from "solid-js";
+import {Component, createEffect, createMemo, createSignal, For, Show} from "solid-js";
 import {RedirectRule} from "../backend/Redirects";
 import {RuleData} from "../SharedClasses";
 
@@ -12,18 +12,60 @@ interface Options {
 
 const RuleSelector: Component<Options> = (opt) => {
     const [showDialog, setShowDialog] = createSignal<boolean>(false)
+    const [dragging, setDragging] = createSignal<boolean>(false)
+
+
+    function chipDragStart(event: DragEvent, index: number){
+        if (opt.rules.length <= 1) return
+        event.dataTransfer!.setData("delete", index.toString())
+        setDragging(true)
+    }
+
+    function chipDragEnd() {
+        setDragging(false)
+    }
+
+    function chipEnter(event: DragEvent) {
+        const data: string = event.dataTransfer!.getData("delete")
+        if (data.length != 0) event.preventDefault()
+    }
+
+    function chipDrop(event: DragEvent) {
+        const data: string = event.dataTransfer!.getData("delete")
+        console.log(`data is ${data}`)
+        opt.onRuleDelete(parseInt(data))
+        event.preventDefault()
+    }
 
     return (
         <>
             <div class="row">
-                <div class="tabs scroll max">
+                <nav class="scroll max">
                     <For each={ opt.rules }>{(rule, i) =>
-                        <a classList={ {active: i() == opt.index} } onclick={ () => opt.onRuleSelect(i()) }>{ rule.name }</a>
+                        <a class="chip" draggable={true} classList={ {fill: i() == opt.index} }
+                           onclick={ () => opt.onRuleSelect(i()) }
+                           onDragStart={ e => chipDragStart(e, i()) }
+                           onDragEnd={ e => chipDragEnd() }
+                        >
+                            {rule.name}
+                        </a>
                     }</For>
-                </div>
-                <button class="small round" onClick={ () => {setShowDialog(true);console.log("Button clicked")} }>
-                    Add new
-                </button>
+                </nav>
+                <Show when={!dragging()}
+                      fallback={
+                    <button onDragEnter={chipEnter} onDragOver={chipEnter}
+                            onDrop={chipDrop}
+                    >
+                        <i>Delete</i>
+                        <span>Delete</span>
+                    </button>
+                }>
+                    <button class="small round" onClick={ () => {setShowDialog(true)} }>
+                        <i>Add</i>
+                        <span>Add new</span>
+                    </button>
+                </Show>
+
             </div>
             <NamePrompt
                 open={showDialog()}
@@ -50,7 +92,7 @@ const NamePrompt: Component<NamePromptOpt> = (opt) => {
     const nameEmpty = createMemo<boolean>(() => name().trim().length == 0)
 
     createEffect(() => {
-        console.log(`Open is ${opt.open}`)
+        // console.log(`Open is ${opt.open}`)
         if (opt.open) {
             self!.showModal()
             input!.focus()
@@ -70,8 +112,14 @@ const NamePrompt: Component<NamePromptOpt> = (opt) => {
                 />
             </div>
             <div class="row right-align">
-                <button class="small" onclick={ () => opt.onCancel() }>Cancel</button>
-                <button class="small" disabled={nameEmpty()} onclick={ () => opt.onSubmit(name().trim()) }>Add</button>
+                <button class="small" onclick={ () => opt.onCancel() }>
+                    <i>Cancel</i>
+                    <span>Cancel</span>
+                </button>
+                <button class="small" disabled={nameEmpty()} onclick={ () => opt.onSubmit(name().trim()) }>
+                    <i>Add</i>
+                    <span>Add</span>
+                </button>
             </div>
         </dialog>
     )
