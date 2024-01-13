@@ -1,4 +1,4 @@
-import {loadRules, RuleUpdateEvent, stringf, UrlSelectionEvent} from "../SharedClasses";
+import {loadRules, OpenRequestEvent, RuleUpdateEvent, stringf, UrlSelectionEvent} from "../SharedClasses";
 import {RedirectRule} from "./Redirects";
 import {contextMenus, runtime, Tabs, tabs} from "webextension-polyfill";
 import Tab = Tabs.Tab;
@@ -56,7 +56,7 @@ contextMenus.onClicked.addListener((info, tab) => {
         console.error("Redirect is undefined!")
         return;
     }
-    console.log(`redirect is ${redirect}, id is ${id}, pageig is ${pageId} menudi is ${menuId}`)
+    console.log(`redirect is ${redirect}, id is ${id}, pageid is ${pageId} menuid is ${menuId}`)
     let redirectUrl: string = redirect.redirectUrls[pageId]
     if (!redirectUrl.startsWith("https://") && !redirectUrl.startsWith("http://")) {
         redirectUrl = "https://" + redirectUrl
@@ -64,15 +64,20 @@ contextMenus.onClicked.addListener((info, tab) => {
     redirectUrl = stringf(redirectUrl, redirect.capturedGroups)
     console.log(`Redirecting to ${redirectUrl}`)
     if (newTab) {
-        tabs.create({
-            windowId: tab!.windowId,
-            index: tab!.index+1,
+        tabs.sendMessage(tab!.id!, {
+            name: "open",
             url: redirectUrl
+        } as OpenRequestEvent).catch(() => {
+            console.log("Trying to open from service worker...")
+            tabs.create({
+                windowId: tab!.windowId,
+                index: tab!.index+1,
+                url: redirectUrl
+            })
         })
     } else {
         tabs.update(tab!.id!, {
             url: redirectUrl
         })
     }
-
 })

@@ -55,6 +55,11 @@ interface RuleUpdateEvent extends BaseEvent {
     name: "update"
 }
 
+interface OpenRequestEvent extends BaseEvent {
+    name: "open"
+    url: string
+}
+
 type JsonAbleTypes = null | boolean | number | string | Array<JsonAbleTypes> | JsonObject
 
 type JsonObject = {
@@ -82,6 +87,7 @@ export {
 export type {
     UrlSelectionEvent,
     RuleUpdateEvent,
+    OpenRequestEvent,
     JsonObject,
     Serializable,
     BaseEvent,

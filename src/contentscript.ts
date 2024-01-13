@@ -1,4 +1,4 @@
-import {UrlSelectionEvent} from "./SharedClasses";
+import {OpenRequestEvent, UrlSelectionEvent} from "./SharedClasses";
 import {runtime} from "webextension-polyfill";
 
 console.log(`Doc is ${document}, window is ${window}`)
@@ -26,6 +26,11 @@ document.addEventListener("mouseover", (e) => {
         scheduleSend(window.location.href, false)
         wasBody = true
     }
+})
+
+runtime.onMessage.addListener((message: OpenRequestEvent) => {
+    if (message.name != "open") return;
+    return window.open(message.url) != null ? Promise.resolve() : Promise.reject()
 })
 
 function scheduleSend(url: string, newTab: boolean) {
