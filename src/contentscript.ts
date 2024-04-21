@@ -1,7 +1,7 @@
 import {UrlSelectionEvent} from "./SharedClasses";
 import {runtime} from "webextension-polyfill";
 
-console.log(`Doc is ${document}, window is ${window}`)
+// console.log(`Doc is ${document}, window is ${window}`)
 
 // var lastSelected: Element | null
 var wasBody: boolean = false

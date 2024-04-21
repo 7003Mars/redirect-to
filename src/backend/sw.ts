@@ -66,6 +66,7 @@ contextMenus.onClicked.addListener((info, tab) => {
     if (newTab) {
         tabs.create({
             windowId: tab!.windowId,
+            openerTabId: tab!.id,
             index: tab!.index+1,
             url: redirectUrl
         })
@@ -74,5 +75,4 @@ contextMenus.onClicked.addListener((info, tab) => {
             url: redirectUrl
         })
     }
-
 })
