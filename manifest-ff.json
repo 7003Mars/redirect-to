@@ -6,6 +6,7 @@
     "page": "options.html",
     "open_in_tab": true
   },
+  "browser_action": {},
   "permissions": [
     "contextMenus", "tabs", "storage"
   ],

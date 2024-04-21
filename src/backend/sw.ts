@@ -1,6 +1,6 @@
 import {loadRules, RuleUpdateEvent, stringf, UrlSelectionEvent} from "../SharedClasses";
 import {RedirectRule} from "./Redirects";
-import {contextMenus, runtime, Tabs, tabs} from "webextension-polyfill";
+import {browserAction, contextMenus, runtime, Tabs, tabs} from "webextension-polyfill";
 import Tab = Tabs.Tab;
 
 var newTab: boolean = false
@@ -12,6 +12,10 @@ loadRules().then(async loaded => {
     rules = loaded
     const url = (await tabs.getCurrent())?.url ?? ""
     await rebuildMenus(url)
+})
+
+browserAction.onClicked.addListener(() => {
+    runtime.openOptionsPage()
 })
 
 runtime.onMessage.addListener((message: UrlSelectionEvent) => {
