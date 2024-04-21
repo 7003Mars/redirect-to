@@ -16,4 +16,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: extension
-          path: dist/*
+          path: dist/redirect_to...-1.0.0.zip

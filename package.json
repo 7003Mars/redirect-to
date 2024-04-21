@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "start": "nodemon",
-    "dev": "ts-node build.mts && web-ext run --no-reload --start-url about:addons --source-dir ./dist"
+    "dev": "ts-node build.mts && web-ext run --no-reload --start-url about:addons --source-dir ./dist",
+    "build": "ts-node build.mts && web-ext build --source-dir ./dist --artifacts-dir ./dist "
   },
   "license": "MIT",
   "devDependencies": {
